@@ -136,7 +136,7 @@ st.divider()
 # --- 사이드바 ---
 with st.sidebar:
     st.header("⚙️ 기본 설정")
-    uploaded_file = st.file_uploader("평가계획 PDF 파일을 첨부해 주세요", type=['pdf'])
+    uploaded_file = st.file_uploader("학년별 평가계획 PDF 파일을 첨부해 주세요", type=['pdf'])
     
     st.divider()
     st.subheader("🔑 API 키 설정")
@@ -162,7 +162,7 @@ if os.path.exists("guideline.txt"):
 # --- 메인 로직 ---
 if uploaded_file and active_api_key:
     # 1단계 제목 추가
-    st.subheader("🗂️ 1단계: 평가계획 PDF 분석하기")
+    st.subheader("🗂️ 1단계: 학년별 평가계획 PDF 분석하기")
     
     # 버튼 문구 깔끔하게 수정
     if st.button("📌PDF에서 과목 및 성취기준 추출하기", type="primary"):
@@ -177,7 +177,7 @@ if uploaded_file and active_api_key:
 
 if st.session_state['subjects_dict']:
     st.divider()
-    st.subheader("🎯 2단계: 평어 생성하기")
+    st.subheader("🎯 2단계: 교평어 생성하기")
     col1, col2 = st.columns(2)
     with col1:
         subjects = list(st.session_state['subjects_dict'].keys())
@@ -189,7 +189,7 @@ if st.session_state['subjects_dict']:
         selected_standard = st.selectbox("📌 성취기준을 선택하세요", standards)
     
     if st.button(f"🚀 '{selected_subject}' 교과평어 53개 생성하기"):
-        with st.spinner("지침에 맞춰 수준별 교과평어를 작성하고 있습니다... (버튼 또 누르기X 새로고침X 잠시만 기다려주세요)"):
+        with st.spinner("지침에 맞춰 수준별 교과평어(매우잘함30개, 잘함15개, 보통5개, 노력요함3개, 총 53개)를 작성하고 있습니다...  (버튼 또 누르기X 새로고침X  잠시만 기다려주세요🙏)"):
             try:
                 result_text = generate_comments(active_api_key, selected_standard, guideline_text)
                 lines = result_text.strip().split('\n')
