@@ -72,8 +72,24 @@ def extract_text_from_pdf(pdf_file):
 def get_working_model(api_key):
     genai.configure(api_key=api_key)
     try:
-        # 꼬리표를 모두 뗀, 구글의 가장 공식적이고 안정적인 명칭으로 고정합니다.
-        return genai.GenerativeModel('gemini-1.5-flash')
+        available_models = []
+        # 1. 서버에서 현재 사용 가능한 진짜 모델 리스트를 가져옵니다.
+        for m in genai.list_models():
+            if 'generateContent' in m.supported_generation_methods:
+                available_models.append(m.name)
+        
+        target_model = None
+        # 2. 선생님의 행특 생성기에서 완벽하게 작동했던 핵심 로직! (1.5-flash만 쏙 골라냄)
+        for m_name in available_models:
+            if '1.5-flash' in m_name:
+                target_model = m_name
+                break
+                
+        # 3. 만약 못 찾으면 첫 번째 모델을 씁니다.
+        if not target_model:
+            target_model = available_models[0]
+            
+        return genai.GenerativeModel(target_model)
     except Exception as e:
         raise Exception(f"모델 연결 중 오류 발생: {e}")
     
