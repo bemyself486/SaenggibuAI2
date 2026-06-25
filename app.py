@@ -161,9 +161,12 @@ if os.path.exists("guideline.txt"):
 
 # --- 메인 로직 ---
 if uploaded_file and active_api_key:
-    # 1단계 버튼 (type="primary" 속성 덕분에 상단의 하늘색 CSS가 적용됨)
-    if st.button("📄 1단계: PDF 자동 분석 (과목 및 성취기준 추출)", type="primary"):
-        with st.spinner("AI가 문서를 읽고 과목과 성취기준을 분류하고 있습니다... 조금만 기다려주세요"):
+    # 1단계 제목 추가
+    st.subheader("🗂️ 1단계: 평가계획 PDF 분석하기")
+    
+    # 버튼 문구 깔끔하게 수정
+    if st.button("PDF에서 과목 및 성취기준 추출하기", type="primary"):
+        with st.spinner("AI가 문서를 읽고 과목과 성취기준을 분류하고 있습니다... (최초 1회만 필요한 과정, 1분 이내)"):
             try:
                 pdf_text = extract_text_from_pdf(uploaded_file)
                 parsed_data = parse_subjects_and_standards(active_api_key, pdf_text)
