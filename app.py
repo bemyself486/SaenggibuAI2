@@ -78,18 +78,26 @@ def get_working_model(api_key):
                 available_models.append(m.name)
         if not available_models:
             raise Exception("텍스트 생성을 지원하는 모델을 찾을 수 없습니다.")
+            
         target_model = None
+        
+        # 1순위: 한도가 하루 1,500회로 가장 넉넉하고 가벼운 1.5-flash 모델을 강제로 찾습니다.
         for am in available_models:
-            if 'flash' in am.lower():
+            if '1.5-flash' in am.lower():
                 target_model = am
                 break
+                
+        # 2순위: 혹시라도 없다면, 깐깐한 2.5 버전을 피해서 다른 flash 모델을 찾습니다.
         if not target_model:
             for am in available_models:
-                if 'pro' not in am.lower():
+                if 'flash' in am.lower() and '2.5' not in am.lower():
                     target_model = am
                     break
+                    
+        # 최후의 수단
         if not target_model:
             target_model = available_models[0]
+            
         return genai.GenerativeModel(target_model)
     except Exception as e:
         raise Exception(f"모델 탐색 중 오류 발생: {e}")
