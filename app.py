@@ -98,11 +98,14 @@ def parse_subjects_and_standards(api_key, text):
     model = get_working_model(api_key) 
     prompt = """다음 텍스트는 초등학교 과목별 평가계획서입니다. 
     이 텍스트를 분석하여 '과목명'과 해당 과목의 '성취기준'들을 추출해 주세요.
+    과목명(학교자율시간 포함)과 해당 과목의 모든 성취기준을 빠짐없이 정확하게 추출하세요.
+    단 하나도 누락하면 안 됩니다.
     반드시 아래의 JSON 형식으로만 출력해야 합니다. 마크다운(```json 등)이나 다른 설명은 절대 추가하지 마세요.
     
     {
         "국어": ["[5국01-01] 성취기준 내용", "[5국01-02] 성취기준 내용"],
-        "수학": ["[5수01-01] 성취기준 내용"]
+        "수학": ["[5수01-01] 성취기준 내용"],
+        "학교자율시간(인성)": ["[5도인성05-01] 내용"]
     }
     
     텍스트:
@@ -177,7 +180,7 @@ if uploaded_file and active_api_key:
 
 if st.session_state['subjects_dict']:
     st.divider()
-    st.subheader("🎯 2단계: 교평어 생성하기")
+    st.subheader("🎯 2단계: 교과평어 생성하기")
     col1, col2 = st.columns(2)
     with col1:
         subjects = list(st.session_state['subjects_dict'].keys())
