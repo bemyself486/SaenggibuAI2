@@ -218,4 +218,4 @@ if st.session_state['subjects_dict']:
             except Exception as e:
                 st.error(f"오류가 발생했습니다. (1분당 한도 초과일 수 있습니다. 1분 뒤 다시 누르시거나 개인 키를 입력해 주세요) 에러: {e}")
 elif not uploaded_file:
-    st.info("👈 왼쪽 사이드바에서 학년별 평가계획 PDF 파일을 업로드해 주세요.")
+    st.info("👈 왼쪽 사이드바에서 학년별 평가계획 PDF 파일을 업로드해 주세요. (예. n학년 1학기 평가계획.pdf)")
