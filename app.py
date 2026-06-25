@@ -81,7 +81,6 @@ def get_working_model(api_key):
             raise Exception("Quota Exceeded: 현재 사용할 수 있는 무료 모델이 없습니다.")
         
         target_model = None
-        # 현재 구글 서버에 살아있는 Flash 계열 모델을 유연하게 찾아냅니다.
         for m_name in available_models:
             if 'flash' in m_name:
                 target_model = m_name
@@ -92,7 +91,6 @@ def get_working_model(api_key):
             
         return genai.GenerativeModel(target_model)
     except Exception as e:
-        # 에러 발생 시 Quota Exceeded 문구를 강제로 포함시켜 빨간 안내창이 뜨도록 유도합니다.
         raise Exception(f"Quota Exceeded (모델 연결 실패): {e}")
     
 def parse_subjects_and_standards(api_key, text):
@@ -101,7 +99,7 @@ def parse_subjects_and_standards(api_key, text):
     이 텍스트를 분석하여 '과목명'과 해당 과목의 '성취기준'들을 추출해 주세요.
     과목명(학교자율시간 포함)과 해당 과목의 모든 성취기준을 빠짐없이 정확하게 추출하세요.
     단 하나도 누락하면 안 됩니다.
-    Bayes의 법칙이나 다른 설명은 제외하고 반드시 아래의 JSON 형식으로만 출력해야 합니다. 마크다운(```json 등)이나 다른 설명은 절대 추가하지 마세요.
+    반드시 아래의 JSON 형식으로만 출력해야 합니다. 마크다운(```json 등)이나 다른 설명은 절대 추가하지 마세요.
     
     {
         "국어": ["[5국01-01] 성취기준 내용", "[5국01-02] 성취기준 내용"],
@@ -198,11 +196,25 @@ if st.session_state['subjects_dict']:
             try:
                 result_text = generate_comments(active_api_key, selected_standard, guideline_text)
                 lines = result_text.strip().split('\n')
+                
                 data = []
+                level_counts = {} # 성취수준별 번호를 세기 위한 파이썬의 비밀 병기!
+                
                 for line in lines:
                     parts = line.split('|')
                     if len(parts) >= 3:
-                        data.append([parts[0].strip(), parts[1].strip(), parts[2].strip()])
+                        # 별표(*)나 자잘한 공백 등을 깨끗하게 제거합니다.
+                        level = parts[0].replace('*', '').strip()
+                        comment = parts[2].strip()
+                        
+                        # 수준별로 1번부터 새로 번호를 매깁니다.
+                        if level not in level_counts:
+                            level_counts[level] = 1
+                        else:
+                            level_counts[level] += 1
+                            
+                        # AI가 멋대로 쓴 31, 32 번호(parts[1])는 과감히 버리고, 우리가 정확히 센 번호를 넣습니다.
+                        data.append([level, str(level_counts[level]), comment])
                 
                 if data:
                     df = pd.DataFrame(data, columns=['성취수준', '연번', '교과평어'])
