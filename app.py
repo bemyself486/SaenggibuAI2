@@ -11,18 +11,20 @@ import random
 st.set_page_config(page_title="생기부 교과평어 생성기", layout="wide")
 
 # --- 커스텀 CSS (버튼 색상 변경) ---
-# Streamlit의 기본 Primary 버튼(빨간색)을 부드러운 하늘색 계열로 변경합니다.
+# 사용자가 누르고 싶게 만드는 산뜻하고 신뢰감 있는 '토스 블루' 스타일
 st.markdown("""
     <style>
     button[kind="primary"] {
-        background-color: #E1F5FE !important; /* 연한 하늘색 배경 */
-        color: black !important; /* 검은색 텍스트 */
-        border: 1px solid #B3E5FC !important; /* 테두리 색상 */
+        background-color: #3182F6 !important; /* 산뜻한 파란색 */
+        color: white !important; /* 텍스트는 깔끔한 흰색 */
+        border: none !important; /* 테두리 제거 */
+        border-radius: 8px !important; /* 모서리를 부드럽게 둥글림 */
+        font-weight: bold !important; /* 글씨를 굵게 강조 */
+        transition: 0.2s !important; /* 마우스 올릴 때 부드러운 전환 효과 */
     }
     button[kind="primary"]:hover {
-        background-color: #B3E5FC !important; /* 마우스 올렸을 때 조금 더 진해짐 */
-        color: black !important;
-        border: 1px solid #81D4FA !important;
+        background-color: #1B64DA !important; /* 마우스 올렸을 때 더 깊고 진한 파란색 */
+        color: white !important;
     }
     </style>
 """, unsafe_allow_html=True)
