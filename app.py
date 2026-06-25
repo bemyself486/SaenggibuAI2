@@ -71,9 +71,11 @@ def extract_text_from_pdf(pdf_file):
 
 def get_working_model(api_key):
     genai.configure(api_key=api_key)
-    # 모델 찾는 과정(list_models) 전면 삭제! 시간 지연 원인 제거.
-    # 예전 행특 생성기에서 오류 없이 가장 빠르고 넉넉하게 작동했던 모델의 정확한 풀네임으로 고정합니다.
-    return genai.GenerativeModel('gemini-1.5-flash-latest')
+    try:
+        # 꼬리표를 모두 뗀, 구글의 가장 공식적이고 안정적인 명칭으로 고정합니다.
+        return genai.GenerativeModel('gemini-1.5-flash')
+    except Exception as e:
+        raise Exception(f"모델 연결 중 오류 발생: {e}")
     
 def parse_subjects_and_standards(api_key, text):
     model = get_working_model(api_key) 
