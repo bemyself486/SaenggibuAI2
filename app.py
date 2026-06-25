@@ -11,19 +11,33 @@ import random
 st.set_page_config(page_title="생기부 교과평어 생성기", layout="wide")
 
 # --- 커스텀 CSS (버튼 색상 변경) ---
-# 사용자가 누르고 싶게 만드는 산뜻하고 신뢰감 있는 '토스 블루' 스타일
 st.markdown("""
     <style>
+    /* 1. 메인 버튼 (1단계 분석, 2단계 생성) - 토스 블루 */
     button[kind="primary"] {
-        background-color: #3182F6 !important; /* 산뜻한 파란색 */
-        color: white !important; /* 텍스트는 깔끔한 흰색 */
-        border: none !important; /* 테두리 제거 */
-        border-radius: 8px !important; /* 모서리를 부드럽게 둥글림 */
-        font-weight: bold !important; /* 글씨를 굵게 강조 */
-        transition: 0.2s !important; /* 마우스 올릴 때 부드러운 전환 효과 */
+        background-color: #3182F6 !important;
+        color: white !important;
+        border: none !important;
+        border-radius: 8px !important;
+        font-weight: bold !important;
+        transition: 0.2s !important;
     }
     button[kind="primary"]:hover {
-        background-color: #1B64DA !important; /* 마우스 올렸을 때 더 깊고 진한 파란색 */
+        background-color: #1B64DA !important;
+        color: white !important;
+    }
+    
+    /* 2. 서브 버튼 (엑셀 다운로드, 파일 첨부) - 엑셀 그린 */
+    button[kind="secondary"] {
+        background-color: #107C41 !important; /* 엑셀 공식 초록색 */
+        color: white !important;
+        border: none !important;
+        border-radius: 8px !important;
+        font-weight: bold !important;
+        transition: 0.2s !important;
+    }
+    button[kind="secondary"]:hover {
+        background-color: #0B5A2F !important;
         color: white !important;
     }
     </style>
@@ -101,7 +115,7 @@ def generate_comments(api_key, standard_text, guideline_text):
 # ==========================================
 # 화면 레이아웃 시작
 # ==========================================
-st.title("📝 생기부 교과평어 자동 생성 웹앱")
+st.title("📝 생기부 교과평어 초안 생성 도우")
 st.markdown("본 AI는 초안 작성을 돕는 어시스턴트입니다. 생성된 평어는 반드시 선생님의 최종 확인을 거쳐 사용해 주세요.")
 st.divider()
 
