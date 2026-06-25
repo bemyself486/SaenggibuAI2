@@ -72,12 +72,37 @@ def extract_text_from_pdf(pdf_file):
 def get_working_model(api_key):
     genai.configure(api_key=api_key)
     try:
-        # 복잡하게 구글의 모델 목록을 뒤지지 않고, 
-        # 하루 1,500회 무료 한도가 보장된 가장 안정적인 모델로 이름을 쾅 못 박아버립니다!
-        target_model = 'gemini-1.5-flash'
+        available_models = []
+        # 1. 구글 서버에 현재 살아있는 모든 모델의 리스트를 받아옵니다.
+        for m in genai.list_models():
+            if 'generateContent' in m.supported_generation_methods:
+                available_models.append(m.name)
+        
+        if not available_models:
+            raise Exception("텍스트 생성을 지원하는 모델을 찾을 수 없습니다.")
+            
+        target_model = None
+        
+        # 2. 이름에 '1.5'와 'flash'가 모두 들어간 모델을 찾아냅니다. (뒤에 -001, -latest 등이 붙어도 다 잡아냅니다!)
+        for am in available_models:
+            if '1.5' in am and 'flash' in am:
+                target_model = am
+                break
+                
+        # 3. 혹시라도 1.5가 아예 없다면, 한도가 0인 2.0이나 2.5를 피해서 남은 flash 모델을 찾습니다.
+        if not target_model:
+            for am in available_models:
+                if 'flash' in am and '2.0' not in am and '2.5' not in am:
+                    target_model = am
+                    break
+        
+        # 4. 그래도 없으면 구글이 준 첫 번째 모델을 씁니다.
+        if not target_model:
+            target_model = available_models[0]
+            
         return genai.GenerativeModel(target_model)
     except Exception as e:
-        raise Exception(f"모델 연결 중 오류 발생: {e}")
+        raise Exception(f"모델 탐색 중 오류 발생: {e}")
 
 def parse_subjects_and_standards(api_key, text):
     model = get_working_model(api_key) 
