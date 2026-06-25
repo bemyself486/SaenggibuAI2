@@ -73,26 +73,27 @@ def get_working_model(api_key):
     genai.configure(api_key=api_key)
     try:
         available_models = []
-        # 1. 서버에서 실제 리스트를 가져옵니다. (이름이 변경되어 생기는 404 에러 방지)
         for m in genai.list_models():
             if 'generateContent' in m.supported_generation_methods:
                 available_models.append(m.name)
         
-        target_model = None
+        if not available_models:
+            raise Exception("Quota Exceeded: 현재 사용할 수 있는 무료 모델이 없습니다.")
         
-        # 2. 오직 1.5-flash만 찾습니다.
+        target_model = None
+        # 현재 구글 서버에 살아있는 Flash 계열 모델을 유연하게 찾아냅니다.
         for m_name in available_models:
-            if '1.5-flash' in m_name:
+            if 'flash' in m_name:
                 target_model = m_name
                 break
                 
-        # 3. [핵심] 1.5 모델이 없다면? 절대 다른 모델(2.0, 2.5)을 마음대로 가져오지 못하게 차단합니다!
         if not target_model:
-            raise Exception("무료 한도가 넉넉한 1.5-flash 모델을 현재 API 키에서 불러올 수 없습니다.")
+            target_model = available_models[0]
             
         return genai.GenerativeModel(target_model)
     except Exception as e:
-        raise Exception(f"모델 연결 중 오류 발생: {e}")
+        # 에러 발생 시 Quota Exceeded 문구를 강제로 포함시켜 빨간 안내창이 뜨도록 유도합니다.
+        raise Exception(f"Quota Exceeded (모델 연결 실패): {e}")
     
 def parse_subjects_and_standards(api_key, text):
     model = get_working_model(api_key) 
@@ -100,7 +101,7 @@ def parse_subjects_and_standards(api_key, text):
     이 텍스트를 분석하여 '과목명'과 해당 과목의 '성취기준'들을 추출해 주세요.
     과목명(학교자율시간 포함)과 해당 과목의 모든 성취기준을 빠짐없이 정확하게 추출하세요.
     단 하나도 누락하면 안 됩니다.
-    반드시 아래의 JSON 형식으로만 출력해야 합니다. 마크다운(```json 등)이나 다른 설명은 절대 추가하지 마세요.
+    Bayes의 법칙이나 다른 설명은 제외하고 반드시 아래의 JSON 형식으로만 출력해야 합니다. 마크다운(```json 등)이나 다른 설명은 절대 추가하지 마세요.
     
     {
         "국어": ["[5국01-01] 성취기준 내용", "[5국01-02] 성취기준 내용"],
@@ -164,10 +165,8 @@ if os.path.exists("guideline.txt"):
 
 # --- 메인 로직 ---
 if uploaded_file and active_api_key:
-    # 1단계 제목 추가
     st.subheader("🗂️ 1단계: 학년별 평가계획 PDF 분석하기")
     
-    # 버튼 문구 깔끔하게 수정
     if st.button("📌PDF에서 과목 및 성취기준 추출하기", type="primary"):
         with st.spinner("AI가 문서를 읽고 과목과 성취기준을 분류하고 있습니다... (최초 1회만 필요한 과정, 1분 이내)"):
             try:
@@ -176,7 +175,11 @@ if uploaded_file and active_api_key:
                 st.session_state['subjects_dict'] = parsed_data 
                 st.success("✅ 문서 분석이 완료되었습니다! 아래에서 과목을 선택해 주세요.")
             except Exception as e:
-                st.error(f"오류가 발생했습니다. (한도 초과 시 개인 API 키를 입력해 주세요) 에러내용: {e}")
+                error_msg = str(e).lower()
+                if "429" in error_msg or "quota" in error_msg or "exhausted" in error_msg:
+                    st.error("🚨 **서버의 일일 무료 사용량이 초과되어 잠시 멈췄습니다!**\n\n왼쪽 사이드바의 **[🔑 API 키 설정]** 칸에 선생님의 **개인 API 키**를 입력하시면 즉시 정상 작동합니다.")
+                else:
+                    st.error(f"⚠️ 문서 분석 중 오류가 발생했습니다. 에러내용: {e}")
 
 if st.session_state['subjects_dict']:
     st.divider()
@@ -186,7 +189,6 @@ if st.session_state['subjects_dict']:
         subjects = list(st.session_state['subjects_dict'].keys())
         selected_subject = st.selectbox("📂 과목을 선택하세요", subjects)
     
-    # 요청하신 문구 수정 반영 구역
     with col2:
         standards = st.session_state['subjects_dict'][selected_subject]
         selected_standard = st.selectbox("📌 성취기준을 선택하세요", standards)
@@ -219,6 +221,10 @@ if st.session_state['subjects_dict']:
                 else:
                     st.error("데이터 생성 오류. 다시 시도해 주세요.")
             except Exception as e:
-                st.error(f"오류가 발생했습니다. (1분당 한도 초과일 수 있습니다. 1분 뒤 다시 누르시거나 개인 키를 입력해 주세요) 에러: {e}")
+                error_msg = str(e).lower()
+                if "429" in error_msg or "quota" in error_msg or "exhausted" in error_msg:
+                    st.error("🚨 **서버의 일일 무료 사용량이 초과되어 잠시 멈췄습니다!**\n\n왼쪽 사이드바의 **[🔑 API 키 설정]** 칸에 선생님의 **개인 API 키**를 입력하시면 지금 바로 이어서 정상 작동합니다. (새로고침하지 마시고 키만 입력 후 생성 버튼을 다시 눌러주세요!)")
+                else:
+                    st.error(f"⚠️ 평어 생성 중 오류가 발생했습니다. 에러내용: {e}")
 elif not uploaded_file:
     st.info("👈 왼쪽 사이드바에서 학년별 평가계획 PDF 파일을 업로드해 주세요. (예. n학년 1학기 평가계획.pdf)")
