@@ -71,36 +71,9 @@ def extract_text_from_pdf(pdf_file):
 
 def get_working_model(api_key):
     genai.configure(api_key=api_key)
-    try:
-        available_models = []
-        # 1. 구글 서버에 현재 살아있는 모든 모델의 리스트를 받아옵니다.
-        for m in genai.list_models():
-            if 'generateContent' in m.supported_generation_methods:
-                available_models.append(m.name)
-        
-        if not available_models:
-            raise Exception("텍스트 생성을 지원하는 모델을 찾을 수 없습니다.")
-            
-        target_model = None
-        
-        # 2. 이름에 '1.5'와 'flash'가 모두 들어간 모델을 찾아냅니다. (뒤에 -001, -latest 등이 붙어도 다 잡아냅니다!)
-        for am in available_models:
-            if '1.5' in am and 'flash' in am:
-                target_model = am
-                break
-                
-        # 3. 혹시라도 1.5가 아예 없다면, 한도가 0인 2.0이나 2.5를 피해서 남은 flash 모델을 찾습니다.
-        if not target_model:
-            for am in available_models:
-                if 'flash' in am and '2.0' not in am and '2.5' not in am:
-                    target_model = am
-                    break
-        
-        # 4. 그래도 없으면 구글이 준 첫 번째 모델을 씁니다.
-        if not target_model:
-            target_model = available_models[0]
-            
-        return genai.GenerativeModel(target_model)
+    # 모델 찾는 과정(list_models) 전면 삭제! 시간 지연 원인 제거.
+    # 예전 행특 생성기에서 오류 없이 가장 빠르고 넉넉하게 작동했던 모델의 정확한 풀네임으로 고정합니다.
+    return genai.GenerativeModel('gemini-1.5-flash-latest')
     except Exception as e:
         raise Exception(f"모델 탐색 중 오류 발생: {e}")
 
