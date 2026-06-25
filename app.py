@@ -10,10 +10,10 @@ import random
 # --- 페이지 기본 설정 ---
 st.set_page_config(page_title="생기부 교과평어 생성기", layout="wide")
 
-# --- 커스텀 CSS (버튼 색상 변경) ---
+# --- 커스텀 CSS (버튼 디자인 변경) ---
 st.markdown("""
     <style>
-    /* 1. 메인 버튼 (1단계 분석, 2단계 생성) - 토스 블루 */
+    /* 1. 메인 버튼 (1단계 분석) - 토스 블루 */
     button[kind="primary"] {
         background-color: #3182F6 !important;
         color: white !important;
@@ -27,9 +27,9 @@ st.markdown("""
         color: white !important;
     }
     
-    /* 2. 서브 버튼 (엑셀 다운로드, 파일 첨부) - 엑셀 그린 */
+    /* 2. 일반 버튼 (2단계 생성하기) - 산뜻한 녹색 */
     button[kind="secondary"] {
-        background-color: #107C41 !important; /* 엑셀 공식 초록색 */
+        background-color: #107C41 !important; 
         color: white !important;
         border: none !important;
         border-radius: 8px !important;
@@ -39,6 +39,20 @@ st.markdown("""
     button[kind="secondary"]:hover {
         background-color: #0B5A2F !important;
         color: white !important;
+    }
+
+    /* 3. 다운로드 전용 버튼 - 카카오톡 노란색 + 검은 글씨 */
+    [data-testid="stDownloadButton"] button {
+        background-color: #FFD43B !important; 
+        color: black !important;
+        border: none !important;
+        border-radius: 8px !important;
+        font-weight: bold !important;
+        transition: 0.2s !important;
+    }
+    [data-testid="stDownloadButton"] button:hover {
+        background-color: #F5B041 !important;
+        color: black !important;
     }
     </style>
 """, unsafe_allow_html=True)
@@ -115,7 +129,7 @@ def generate_comments(api_key, standard_text, guideline_text):
 # ==========================================
 # 화면 레이아웃 시작
 # ==========================================
-st.title("📝 생기부 교과평어 초안 생성 도우")
+st.title("📝 생기부 교과평어 초안 생성 도우미")
 st.markdown("본 AI는 초안 작성을 돕는 어시스턴트입니다. 생성된 평어는 반드시 선생님의 최종 확인을 거쳐 사용해 주세요.")
 st.divider()
 
@@ -149,7 +163,7 @@ if os.path.exists("guideline.txt"):
 if uploaded_file and active_api_key:
     # 1단계 버튼 (type="primary" 속성 덕분에 상단의 하늘색 CSS가 적용됨)
     if st.button("📄 1단계: PDF 자동 분석 (과목 및 성취기준 추출)", type="primary"):
-        with st.spinner("AI가 문서를 읽고 과목과 성취기준을 분류하고 있습니다..."):
+        with st.spinner("AI가 문서를 읽고 과목과 성취기준을 분류하고 있습니다... 조금만 기다려주세요"):
             try:
                 pdf_text = extract_text_from_pdf(uploaded_file)
                 parsed_data = parse_subjects_and_standards(active_api_key, pdf_text)
@@ -171,8 +185,8 @@ if st.session_state['subjects_dict']:
         standards = st.session_state['subjects_dict'][selected_subject]
         selected_standard = st.selectbox("📌 성취기준을 선택하세요", standards)
     
-    if st.button(f"🚀 '{selected_subject}' 교과평어 53개 생성하기", use_container_width=True):
-        with st.spinner("지침에 맞춰 수준별 교과평어를 작성하고 있습니다... (새로고침을 하지 말고 기다려주세요)"):
+    if st.button(f"🚀 '{selected_subject}' 교과평어 53개 생성하기"):
+        with st.spinner("지침에 맞춰 수준별 교과평어를 작성하고 있습니다... (버튼 또 누르기X 새로고침X 잠시만 기다려주세요)"):
             try:
                 result_text = generate_comments(active_api_key, selected_standard, guideline_text)
                 lines = result_text.strip().split('\n')
@@ -193,8 +207,7 @@ if st.session_state['subjects_dict']:
                         label="📥 엑셀 파일(.xlsx)로 다운로드",
                         data=output.getvalue(),
                         file_name=f"{selected_subject}_교과평어.xlsx",
-                        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                        use_container_width=True
+                        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
                     )
                     st.dataframe(df, use_container_width=True)
                 else:
