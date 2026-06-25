@@ -73,35 +73,22 @@ def get_working_model(api_key):
     genai.configure(api_key=api_key)
     try:
         available_models = []
-        # 1. 서버에서 진짜 사용 가능한 모델 리스트를 0.5초 만에 싹 가져옵니다.
+        # 1. 서버에서 실제 리스트를 가져옵니다. (이름이 변경되어 생기는 404 에러 방지)
         for m in genai.list_models():
             if 'generateContent' in m.supported_generation_methods:
                 available_models.append(m.name)
         
         target_model = None
         
-        # 1순위: 현재 무료 한도가 가장 넉넉한 'flash-lite' 모델부터 최우선으로 찾습니다. (핵심!)
+        # 2. 오직 1.5-flash만 찾습니다.
         for m_name in available_models:
-            if 'flash-lite' in m_name:
+            if '1.5-flash' in m_name:
                 target_model = m_name
                 break
                 
-        # 2순위: 만약 예전의 '1.5-flash'가 아직 살아있다면 그걸 씁니다.
+        # 3. [핵심] 1.5 모델이 없다면? 절대 다른 모델(2.0, 2.5)을 마음대로 가져오지 못하게 차단합니다!
         if not target_model:
-            for m_name in available_models:
-                if '1.5-flash' in m_name:
-                    target_model = m_name
-                    break
-        
-        # 3순위: 그래도 없으면 이름에 'flash'가 들어간 다른 모델을 씁니다.
-        if not target_model:
-            for m_name in available_models:
-                if 'flash' in m_name:
-                    target_model = m_name
-                    break
-
-        if not target_model:
-            target_model = available_models[0]
+            raise Exception("무료 한도가 넉넉한 1.5-flash 모델을 현재 API 키에서 불러올 수 없습니다.")
             
         return genai.GenerativeModel(target_model)
     except Exception as e:
