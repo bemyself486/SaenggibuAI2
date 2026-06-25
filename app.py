@@ -73,19 +73,33 @@ def get_working_model(api_key):
     genai.configure(api_key=api_key)
     try:
         available_models = []
-        # 1. 서버에서 현재 사용 가능한 진짜 모델 리스트를 가져옵니다.
+        # 1. 서버에서 진짜 사용 가능한 모델 리스트를 0.5초 만에 싹 가져옵니다.
         for m in genai.list_models():
             if 'generateContent' in m.supported_generation_methods:
                 available_models.append(m.name)
         
         target_model = None
-        # 2. 선생님의 행특 생성기에서 완벽하게 작동했던 핵심 로직! (1.5-flash만 쏙 골라냄)
+        
+        # 1순위: 현재 무료 한도가 가장 넉넉한 'flash-lite' 모델부터 최우선으로 찾습니다. (핵심!)
         for m_name in available_models:
-            if '1.5-flash' in m_name:
+            if 'flash-lite' in m_name:
                 target_model = m_name
                 break
                 
-        # 3. 만약 못 찾으면 첫 번째 모델을 씁니다.
+        # 2순위: 만약 예전의 '1.5-flash'가 아직 살아있다면 그걸 씁니다.
+        if not target_model:
+            for m_name in available_models:
+                if '1.5-flash' in m_name:
+                    target_model = m_name
+                    break
+        
+        # 3순위: 그래도 없으면 이름에 'flash'가 들어간 다른 모델을 씁니다.
+        if not target_model:
+            for m_name in available_models:
+                if 'flash' in m_name:
+                    target_model = m_name
+                    break
+
         if not target_model:
             target_model = available_models[0]
             
