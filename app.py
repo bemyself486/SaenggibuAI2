@@ -165,7 +165,7 @@ if uploaded_file and active_api_key:
     st.subheader("🗂️ 1단계: 평가계획 PDF 분석하기")
     
     # 버튼 문구 깔끔하게 수정
-    if st.button("PDF에서 과목 및 성취기준 추출하기", type="primary"):
+    if st.button("📌PDF에서 과목 및 성취기준 추출하기", type="primary"):
         with st.spinner("AI가 문서를 읽고 과목과 성취기준을 분류하고 있습니다... (최초 1회만 필요한 과정, 1분 이내)"):
             try:
                 pdf_text = extract_text_from_pdf(uploaded_file)
