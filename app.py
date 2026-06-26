@@ -173,9 +173,15 @@ if uploaded_file and active_api_key:
                 st.session_state['subjects_dict'] = parsed_data 
                 st.success("✅ 문서 분석이 완료되었습니다! 아래에서 과목을 선택해 주세요.")
             except Exception as e:
+                # [수정 구간 1] 1단계 분석 중 한도 초과 예외 처리 및 블로그 링크 이식
                 error_msg = str(e).lower()
-                if "429" in error_msg or "quota" in error_msg or "exhausted" in error_msg:
-                    st.error("🚨 **서버의 일일 무료 사용량이 초과되어 잠시 멈췄습니다!**\n\n왼쪽 사이드바의 **[🔑 API 키 설정]** 칸에 선생님의 **개인 API 키**를 입력하시면 즉시 정상 작동합니다.")
+                if "429" in error_msg or "quota" in error_msg or "rate limit" in error_msg or "exhausted" in error_msg:
+                    st.error(
+                        "🚨 **서버의 일일 무료 사용량이 초과되어 잠시 멈췄습니다!**\n\n"
+                        "왼쪽 사이드바의 **[🔑 API 키 설정]** 칸에 선생님의 **개인 API 키**를 입력하시면 "
+                        "즉시 정상 작동합니다.\n\n"
+                        "👉 **[개인 API 키 1분 만에 무료 발급받는 방법 (블로그 안내 바로가기)](https://blog.naver.com/namjuni-lab/224327605445)**"
+                    )
                 else:
                     st.error(f"⚠️ 문서 분석 중 오류가 발생했습니다. 에러내용: {e}")
 
@@ -198,22 +204,20 @@ if st.session_state['subjects_dict']:
                 lines = result_text.strip().split('\n')
                 
                 data = []
-                level_counts = {} # 성취수준별 번호를 세기 위한 파이썬의 비밀 병기!
+                level_counts = {} # 성취수준별 연번 리셋용 딕셔너리
                 
                 for line in lines:
                     parts = line.split('|')
                     if len(parts) >= 3:
-                        # 별표(*)나 자잘한 공백 등을 깨끗하게 제거합니다.
                         level = parts[0].replace('*', '').strip()
                         comment = parts[2].strip()
                         
-                        # 수준별로 1번부터 새로 번호를 매깁니다.
+                        # 수준이 바뀔 때마다 1번부터 연번 자동 리셋 및 증가
                         if level not in level_counts:
                             level_counts[level] = 1
                         else:
                             level_counts[level] += 1
                             
-                        # AI가 멋대로 쓴 31, 32 번호(parts[1])는 과감히 버리고, 우리가 정확히 센 번호를 넣습니다.
                         data.append([level, str(level_counts[level]), comment])
                 
                 if data:
@@ -233,9 +237,15 @@ if st.session_state['subjects_dict']:
                 else:
                     st.error("데이터 생성 오류. 다시 시도해 주세요.")
             except Exception as e:
+                # [수정 구간 2] 2단계 생성 중 한도 초과 예외 처리 및 블로그 링크 이식
                 error_msg = str(e).lower()
-                if "429" in error_msg or "quota" in error_msg or "exhausted" in error_msg:
-                    st.error("🚨 **서버의 일일 무료 사용량이 초과되어 잠시 멈췄습니다!**\n\n왼쪽 사이드바의 **[🔑 API 키 설정]** 칸에 선생님의 **개인 API 키**를 입력하시면 지금 바로 이어서 정상 작동합니다. (새로고침하지 마시고 키만 입력 후 생성 버튼을 다시 눌러주세요!)")
+                if "429" in error_msg or "quota" in error_msg or "rate limit" in error_msg or "exhausted" in error_msg:
+                    st.error(
+                        "🚨 **서버의 일일 무료 사용량이 초과되어 잠시 멈췄습니다!**\n\n"
+                        "왼쪽 사이드바의 **[🔑 API 키 설정]** 칸에 선생님의 **개인 API 키**를 입력하시면 "
+                        "지금 바로 이어서 정상 작동합니다. (새로고침하지 마시고 키만 입력 후 생성 버튼을 다시 눌러주세요!)\n\n"
+                        "👉 **[개인 API 키 1분 만에 무료 발급받는 방법 (블로그 안내 바로가기)](https://blog.naver.com/namjuni-lab/224327605445)**"
+                    )
                 else:
                     st.error(f"⚠️ 평어 생성 중 오류가 발생했습니다. 에러내용: {e}")
 elif not uploaded_file:
